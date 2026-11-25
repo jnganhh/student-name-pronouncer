@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Student Name Pronouncer — IPA &amp; Cantonese-Mixed</title>
+  <meta name="description" content="Free web tool for teachers to speak student names aloud and view formal IPA and informal Cantonese-mixed pronunciations." />
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --muted: #64748b;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --primary-fg: #ffffff;
+      --chip-bg: #f1f5f9;
+      --shadow: 0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --bg: #0b1120;
+        --card: #111827;
+        --border: #1f2937;
+        --text: #f1f5f9;
+        --muted: #94a3b8;
+        --primary: #3b82f6;
+        --primary-hover: #2563eb;
+        --primary-fg: #ffffff;
+        --chip-bg: #1e293b;
+        --shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+      }
+    }
+
+    :root[data-theme="dark"] {
+      --bg: #0b1120;
+      --card: #111827;
+      --border: #1f2937;
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+      --primary: #3b82f6;
+      --primary-hover: #2563eb;
+      --primary-fg: #ffffff;
+      --chip-bg: #1e293b;
+      --shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans HK", "PingFang HK", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .container {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 28px 16px 48px;
+    }
+
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 20px;
+    }
+
+    .title-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+
+    .badge {
+      font-size: 0.75rem;
+      padding: 2px 8px;
+      border-radius: 6px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-sm, select {
+      font-size: 0.8125rem;
+      padding: 6px 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--text);
+      cursor: pointer;
+    }
+
+    select {
+      max-width: 170px;
+    }
+
+    .btn-sm:hover { opacity: 0.85; }
+
+    .input-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .input-wrap {
+      position: relative;
+      flex: 1;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 12px 36px 12px 14px;
+      font-size: 1rem;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--text);
+      box-shadow: var(--shadow);
+      outline: none;
+    }
+
+    input[type="text"]:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+
+    .clear-btn {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 0.9rem;
+      padding: 4px 6px;
+      display: none;
+    }
+
+    .clear-btn.visible { display: block; }
+
+    .speak-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 20px;
+      border: none;
+      border-radius: 10px;
+      background: var(--primary);
+      color: var(--primary-fg);
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: var(--shadow);
+      transition: background 0.15s, transform 0.1s;
+      flex-shrink: 0;
+    }
+
+    .speak-btn:hover { background: var(--primary-hover); }
+    .speak-btn:active { transform: scale(0.98); }
+
+    .samples-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+      font-size: 0.8125rem;
+    }
+
+    .samples-label { color: var(--muted); }
+
+    .chip {
+      padding: 3px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--text);
+      font-size: 0.8125rem;
+      cursor: pointer;
+      transition: border-color 0.15s;
+    }
+
+    .chip:hover { border-color: var(--primary); }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+
+    @media (max-width: 600px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+    }
+
+    .copy-btn {
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      font-size: 0.75rem;
+      cursor: pointer;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .copy-btn:hover {
+      color: var(--text);
+      background: var(--chip-bg);
+    }
+
+    .ipa-text {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 1.5rem;
+      font-weight: 600;
+      word-break: break-word;
+    }
+
+    .canto-text {
+      font-size: 1.5rem;
+      font-weight: 600;
+      word-break: break-word;
+    }
+
+    .sub-note {
+      font-size: 0.8125rem;
+      color: var(--muted);
+    }
+
+    .mono {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    .tip-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      font-size: 0.8125rem;
+      color: var(--muted);
+      margin-bottom: 24px;
+    }
+
+    .roster-section {
+      border-top: 1px solid var(--border);
+      padding-top: 18px;
+    }
+
+    .roster-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .roster-title {
+      font-size: 0.875rem;
+      font-weight: 600;
+    }
+
+    .roster-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .roster-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+
+    .roster-item:hover { border-color: var(--primary); }
+
+    .roster-del {
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 0.75rem;
+      padding: 0 2px;
+    }
+
+    .roster-del:hover { color: #ef4444; }
+
+    @keyframes pulse-bar {
+      0%, 100% { transform: scaleY(0.4); }
+      50% { transform: scaleY(1); }
+    }
+    .speaking-wave {
+      display: none;
+      align-items: center;
+      gap: 2px;
+      height: 16px;
+    }
+    .speaking-wave.active { display: inline-flex; }
+    .speaking-bar {
+      width: 2px;
+      height: 14px;
+      background: currentColor;
+      border-radius: 2px;
+      animation: pulse-bar 0.7s ease-in-out infinite;
+    }
+    .speaking-bar:nth-child(2) { animation-delay: 0.15s; }
+    .speaking-bar:nth-child(3) { animation-delay: 0.3s; }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <header>
+      <div class="title-wrap">
+        <h1>Student Name Pronouncer</h1>
+        <span class="badge">IPA + 粵語諧音</span>
+      </div>
+      <div class="controls">
+        <button id="speedBtn" type="button" class="btn-sm mono" title="Toggle speech speed">1.0x</button>
+        <select id="voiceSelect" aria-label="Voice">
+          <option value="">Default Voice</option>
+        </select>
+        <button id="themeBtn" type="button" class="btn-sm" title="Toggle light/dark theme">🌓</button>
+      </div>
+    </header>
+
+    <form id="nameForm" class="input-row">
+      <div class="input-wrap">
+        <input id="nameInput" type="text" value="Siobhan" placeholder="Type a student's name (e.g. Siobhan, Nguyen, Xochitl)..." autocomplete="off" />
+        <button id="clearBtn" type="button" class="clear-btn" aria-label="Clear">✕</button>
+      </div>
+      <button id="speakBtn" type="button" class="speak-btn">
+        <svg id="speakerIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+          <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+          <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+        </svg>
+        <span id="speakingWave" class="speaking-wave">
+          <span class="speaking-bar"></span>
+          <span class="speaking-bar"></span>
+          <span class="speaking-bar"></span>
+        </span>
+        <span id="speakLabel">Speak</span>
+      </button>
+    </form>
+
+    <div class="samples-row">
+      <span class="samples-label">Try:</span>
+      <div id="sampleChips" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
+    </div>
+
+    <div class="grid">
+      <section class="card">
+        <div class="card-header">
+          <span>Formal · IPA</span>
+          <button id="copyIpaBtn" type="button" class="copy-btn">Copy</button>
+        </div>
+        <div id="ipaOutput" class="ipa-text">/ʃɪˈvɔːn/</div>
+        <div class="sub-note">Standard International Phonetic Alphabet</div>
+      </section>
+
+      <section class="card">
+        <div class="card-header">
+          <span>Informal · 粵語混合</span>
+          <button id="copyCantoBtn" type="button" class="copy-btn">Copy</button>
+        </div>
+        <div id="cantoOutput" class="canto-text">雪-vorn</div>
+        <div id="jyutpingOutput" class="sub-note mono">syut3 · von</div>
+      </section>
+    </div>
+
+    <div class="tip-bar">
+      <span id="tipText">Irish · silent 'bh' sounds like 'v'</span>
+      <span id="speechStatus"></span>
+    </div>
+
+    <section class="roster-section">
+      <div class="roster-header">
+        <span class="roster-title">My Class List (saved in your browser)</span>
+        <button id="saveRosterBtn" type="button" class="btn-sm">+ Save Current Name</button>
+      </div>
+      <div id="rosterList" class="roster-list"></div>
+    </section>
+  </main>
+
+  <script>
+    const NAME_DICT = {
+      "siobhan":   { ipa: "/ʃɪˈvɔːn/",        canto: "雪-vorn",         jyutping: "syut3 · von",          tip: "Irish · silent 'bh' sounds like 'v'" },
+      "saoirse":   { ipa: "/ˈsɜːrʃə/",        canto: "Sir-雪",          jyutping: "saa1/sir · syut3",     tip: "Irish · rhymes with 'inertia' (SUR-shuh)" },
+      "niamh":     { ipa: "/niːv/",           canto: "妮-v",            jyutping: "nei4 · v",             tip: "Irish · 'mh' sounds like 'v' (NEEV)" },
+      "caoimhe":   { ipa: "/ˈkiːvə/",         canto: "基-va",           jyutping: "gei1 · vaa",           tip: "Irish · pronounced KEE-vuh or KWEE-vuh" },
+      "aoife":     { ipa: "/ˈiːfə/",          canto: "伊-fa",           jyutping: "ji1 · faa",            tip: "Irish · pronounced EE-fuh" },
+      "sean":      { ipa: "/ʃɔːn/",           canto: "shorn (索恩)",    jyutping: "shon",                 tip: "Irish · pronounced SHAWN" },
+      "maeve":     { ipa: "/meɪv/",           canto: "美-v",            jyutping: "mei5 · v",             tip: "Irish · rhymes with 'save'" },
+      "nguyen":    { ipa: "/ŋwɪn/",           canto: "ng-win (軟)",     jyutping: "ng · win",             tip: "Vietnamese · soft 'ng' + 'win' in one syllable" },
+      "tran":      { ipa: "/træn/",           canto: "tr-安 (陳)",      jyutping: "tr · an1",             tip: "Vietnamese · 'tr' + 'an'" },
+      "pham":      { ipa: "/fæm/",            canto: "f-阿姆 (范)",     jyutping: "fam",                  tip: "Vietnamese · 'ph' = 'f'" },
+      "huynh":     { ipa: "/hwɪn/",           canto: "h-win (黃)",      jyutping: "h · win",              tip: "Vietnamese · often pronounced 'hwin' or 'win'" },
+      "hoang":     { ipa: "/hwɑːŋ/",          canto: "王 (wong)",       jyutping: "wong4",                tip: "Vietnamese · similar to Cantonese 'wong'" },
+      "phuong":    { ipa: "/fʊəŋ/",           canto: "f-旺 (芳)",       jyutping: "f · wong",             tip: "Vietnamese · 'ph' = 'f'" },
+      "thao":      { ipa: "/taʊ/",            canto: "桃 (tou)",        jyutping: "tou4",                 tip: "Vietnamese · aspirated 't' + 'ow'" },
+      "quynh":     { ipa: "/kwɪn/",           canto: "k-win (瓊)",      jyutping: "kw · in",              tip: "Vietnamese · pronounced 'kwin'" },
+      "xochitl":   { ipa: "/ˈsoʊtʃiːl/",      canto: "蘇-chill",        jyutping: "sou1 · chill",         tip: "Nahuatl/Mexican · 'x' sounds like 's', silent final 't'" },
+      "joaquin":   { ipa: "/wɑːˈkiːn/",       canto: "華-kin",          jyutping: "waa4 · kin",           tip: "Spanish · 'j' sounds like 'h/w' (wah-KEEN)" },
+      "ximena":    { ipa: "/hiˈmeɪnə/",       canto: "希-美-娜",        jyutping: "hei1 · mei5 · naa4",   tip: "Spanish · 'x' sounds like 'h' (hee-MEH-nah)" },
+      "javier":    { ipa: "/ˈhɑːvieɪ/",       canto: "哈-v-耶",         jyutping: "haa1 · v · je4",       tip: "Spanish · 'j' sounds like 'h'" },
+      "mateo":     { ipa: "/məˈteɪoʊ/",       canto: "馬-提-奧",        jyutping: "maa5 · tai4 · ou3",    tip: "Spanish/Italian · mah-TAY-oh" },
+      "thiago":    { ipa: "/tiˈɑːɡoʊ/",       canto: "提-阿-哥",        jyutping: "tai4 · aa3 · go1",     tip: "Portuguese/Spanish · 'th' sounds like 't'" },
+      "santiago":  { ipa: "/ˌsæntiˈɑːɡoʊ/",   canto: "珊-提-阿-哥",     jyutping: "saan1 · tai4 · aa3 · go1", tip: "Spanish · sahn-tee-AH-goh" },
+      "chloe":     { ipa: "/ˈkloʊi/",         canto: "K-路-伊",         jyutping: "k · lou6 · ji1",       tip: "Greek/French · 'ch' sounds like 'k'" },
+      "zoe":       { ipa: "/ˈzoʊi/",          canto: "zo-伊",           jyutping: "zo · ji1",             tip: "Greek · two syllables (ZOH-ee)" },
+      "genevieve": { ipa: "/ˈdʒɛnəviːv/",     canto: "珍-na-v-v",       jyutping: "zan1 · naa · v · v",   tip: "French/English · JEN-uh-veev" },
+      "etienne":   { ipa: "/eɪˈtiɛn/",        canto: "A-提-安",         jyutping: "ei1 · tai4 · on1",     tip: "French · eh-TYEN" },
+      "guillaume": { ipa: "/ɡiˈjoʊm/",        canto: "基-擁",           jyutping: "gei1 · jung2",         tip: "French · 'll' is a 'y' sound (gee-YOHM)" },
+      "aarav":     { ipa: "/ˈɑːrəv/",         canto: "阿-ra-v",         jyutping: "aa3 · raa · v",        tip: "Hindi/Sanskrit · AH-ruhv" },
+      "aanya":     { ipa: "/ˈɑːnjə/",         canto: "阿-nya",          jyutping: "aa3 · njaa",           tip: "Indian · AHN-yah" },
+      "ananya":    { ipa: "/əˈnʌnjə/",        canto: "阿-難-ya",        jyutping: "aa3 · naan4 · jaa",    tip: "Indian · uh-NUN-yah" },
+      "priya":     { ipa: "/ˈpriːjə/",        canto: "p-利-亞",         jyutping: "p · lei6 · aa3",       tip: "Indian · PREE-yah" },
+      "arjun":     { ipa: "/ˈɑːrdʒʊn/",       canto: "阿-俊",           jyutping: "aa3 · zeon3",          tip: "Indian · AR-jun" },
+      "diya":      { ipa: "/ˈdiːjə/",         canto: "迪-亞",           jyutping: "dik6 · aa3",           tip: "Indian · DEE-yah" },
+      "seoyeon":   { ipa: "/ˈsʌjʌn/",         canto: "梳-軟",           jyutping: "so1 · jyun5",          tip: "Korean · 'eo' is an open 'uh/aw' sound" },
+      "minjun":    { ipa: "/ˈmɪndʒʊn/",       canto: "敏-俊",           jyutping: "man5 · zeon3",         tip: "Korean · MIN-joon" },
+      "jihoon":    { ipa: "/ˈdʒiːhuːn/",      canto: "智-勳",           jyutping: "zi3 · fan1",           tip: "Korean · JEE-hoon" },
+      "hayeon":    { ipa: "/ˈhɑːjʌn/",        canto: "夏-軟",           jyutping: "haa6 · jyun5",         tip: "Korean · HAH-yeon" },
+      "zhiyuan":   { ipa: "/dʐɻ̩ˈjɥɛn/",      canto: "志-遠 (zi-yuen)", jyutping: "zi3 · jyun5",          tip: "Mandarin · 'zh' is like 'j' with curled tongue" },
+      "xinran":    { ipa: "/ɕinˈʐan/",        canto: "欣-然 (sin-ran)", jyutping: "jan1 · jin4",          tip: "Mandarin · 'x' is like a light 'sh'" },
+      "yuxuan":    { ipa: "/yˈɕɥɛn/",         canto: "宇-軒 (yu-syun)", jyutping: "jyu5 · hin1",          tip: "Mandarin · 'x' is a light 'sh'" },
+      "haruto":    { ipa: "/hɑːˈruːtoʊ/",     canto: "哈-ru-托",        jyutping: "haa1 · ru · tok3",     tip: "Japanese · hah-ROO-toh" },
+      "sakura":    { ipa: "/sɑːˈkuːrə/",      canto: "莎-庫-ra",        jyutping: "saa1 · fu3 · raa",     tip: "Japanese · sah-KOO-rah" },
+      "muhammad":  { ipa: "/mʊˈhæməd/",       canto: "莫-哈-默-德",     jyutping: "mok6 · haa1 · mak6 · dak1", tip: "Arabic · moo-HAM-mad" },
+      "aisha":     { ipa: "/ɑːˈiːʃə/",        canto: "阿-伊-sha",       jyutping: "aa3 · ji1 · shaa",     tip: "Arabic · ah-EE-shah" },
+      "fatima":    { ipa: "/ˈfɑːtɪmə/",       canto: "法-蒂-瑪",        jyutping: "faat3 · dai3 · maa5",  tip: "Arabic · FAH-tee-mah" },
+      "yusuf":     { ipa: "/ˈjuːsʊf/",        canto: "尤-蘇-f",         jyutping: "jau4 · sou1 · f",      tip: "Arabic · YOO-suf" },
+      "zainab":    { ipa: "/ˈzeɪnæb/",        canto: "zay-納-b",        jyutping: "zei · naap6 · b",      tip: "Arabic · ZAY-nab" },
+      "wojciech":  { ipa: "/ˈvɔɪtʃɛx/",       canto: "voy-切-h",        jyutping: "voi · cit3 · h",       tip: "Polish · 'w' = 'v', 'j' = 'y' (VOY-chekh)" },
+      "chiara":    { ipa: "/kiˈɑːrə/",        canto: "基-阿-ra",        jyutping: "gei1 · aa3 · raa",     tip: "Italian · 'ch' = 'k' (kee-AH-rah)" },
+      "giulia":    { ipa: "/ˈdʒuːliə/",       canto: "朱-利-亞",        jyutping: "zyu1 · lei6 · aa3",    tip: "Italian · 'gi' = 'j' (JOO-lee-ah)" },
+      "phoebe":    { ipa: "/ˈfiːbi/",         canto: "菲-比",           jyutping: "fei1 · bei2",          tip: "Greek · 'ph' = 'f', final 'e' is pronounced" },
+      "penelope":  { ipa: "/pəˈnɛləpi/",      canto: "佩-妮-羅-皮",     jyutping: "pui3 · nei4 · lo4 · pei4", tip: "Greek · 4 syllables (puh-NEL-uh-pee)" },
+      "alexander": { ipa: "/ˌælɪɡˈzændər/",   canto: "阿-歷-山-大",     jyutping: "aa3 · lik6 · saan1 · daai6", tip: "Greek/English · al-ig-ZAN-der" },
+      "charlotte": { ipa: "/ˈʃɑːrlət/",       canto: "sha-洛-特",       jyutping: "shaa · lok6 · dak6",   tip: "French/English · 'ch' = 'sh'" },
+      "eleanor":   { ipa: "/ˈɛlənɔːr/",       canto: "艾-蓮-諾",        jyutping: "ngaai6 · lin4 · nok6", tip: "English · EL-uh-nor" },
+      "sebastian": { ipa: "/sɪˈbæstʃən/",     canto: "西-巴-斯-tian",   jyutping: "sai1 · baa1 · si1 · tin", tip: "Latin/English · suh-BAS-chun" },
+      "theodore":  { ipa: "/ˈθiːədɔːr/",      canto: "th-伊-奧-多",     jyutping: "th · ji1 · ou3 · do1", tip: "Greek · THEE-uh-dor" },
+      "michaela":  { ipa: "/məˈkeɪlə/",       canto: "米-kay-拉",       jyutping: "mai5 · kei1 · laai1",  tip: "Hebrew/English · muh-KAY-luh" },
+      "gabriel":   { ipa: "/ˈɡeɪbriəl/",      canto: "gay-b-利-爾",     jyutping: "gei1 · b · lei6 · ji5", tip: "Hebrew/English · GAY-bree-ul" },
+      "yael":      { ipa: "/jɑːˈɛl/",         canto: "亞-艾-爾",        jyutping: "aa3 · ngaai6 · ji5",   tip: "Hebrew · yah-EL" },
+      "aaliyah":   { ipa: "/ɑːˈliːə/",        canto: "阿-利-亞",        jyutping: "aa3 · lei6 · aa3",     tip: "Arabic · ah-LEE-yah" }
+    };
+
+    const SAMPLES = ["Siobhan", "Nguyen", "Xochitl", "Chloe", "Joaquin", "Aarav", "Seoyeon", "Zhiyuan"];
+
+    function normalizeWord(w) {
+      return w.normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/ñ/gi, "ny")
+        .replace(/ç/gi, "s")
+        .toLowerCase()
+        .replace(/[^a-z]/g, "");
+    }
+
+    const DIGRAPH_MAP = [
+      ["tsch", { ipa: "tʃ",  canto: "ch",  jp: "ch" }],
+      ["eigh", { ipa: "eɪ",  canto: "A",   jp: "ei1", vowel: true }],
+      ["ough", { ipa: "oʊ",  canto: "奧",  jp: "ou3", vowel: true }],
+      ["tion", { ipa: "ʃən", canto: "shun", jp: "syun", syllable: true }],
+      ["sion", { ipa: "ʒən", canto: "zhun", jp: "zyun", syllable: true }],
+      ["igh",  { ipa: "aɪ",  canto: "艾",  jp: "oi",  vowel: true }],
+      ["sch",  { ipa: "ʃ",   canto: "sh",  jp: "sh" }],
+      ["zh",   { ipa: "ʒ",   canto: "zh",  jp: "zh" }],
+      ["kh",   { ipa: "x",   canto: "h",   jp: "h" }],
+      ["ph",   { ipa: "f",   canto: "f",   jp: "f" }],
+      ["th",   { ipa: "θ",   canto: "th",  jp: "th" }],
+      ["sh",   { ipa: "ʃ",   canto: "sh",  jp: "sh" }],
+      ["ch",   { ipa: "tʃ",  canto: "ch",  jp: "ch" }],
+      ["wh",   { ipa: "w",   canto: "w",   jp: "w" }],
+      ["qu",   { ipa: "kw",  canto: "kw",  jp: "kw" }],
+      ["ng",   { ipa: "ŋ",   canto: "ng",  jp: "ng" }],
+      ["ck",   { ipa: "k",   canto: "k",   jp: "k" }],
+      ["gh",   { ipa: "ɡ",   canto: "g",   jp: "g" }],
+      ["ee",   { ipa: "iː",  canto: "伊",  jp: "ji1", vowel: true }],
+      ["ea",   { ipa: "iː",  canto: "伊",  jp: "ji1", vowel: true }],
+      ["oo",   { ipa: "uː",  canto: "烏",  jp: "wu1", vowel: true }],
+      ["ou",   { ipa: "aʊ",  canto: "歐",  jp: "au1", vowel: true }],
+      ["ow",   { ipa: "oʊ",  canto: "奧",  jp: "ou3", vowel: true }],
+      ["oi",   { ipa: "ɔɪ",  canto: "oi",  jp: "oi",  vowel: true }],
+      ["oy",   { ipa: "ɔɪ",  canto: "oi",  jp: "oi",  vowel: true }],
+      ["ai",   { ipa: "eɪ",  canto: "ei",  jp: "ei1", vowel: true }],
+      ["ay",   { ipa: "eɪ",  canto: "ei",  jp: "ei1", vowel: true }],
+      ["au",   { ipa: "ɔː",  canto: "奧",  jp: "o1",  vowel: true }],
+      ["aw",   { ipa: "ɔː",  canto: "奧",  jp: "o1",  vowel: true }],
+      ["ei",   { ipa: "eɪ",  canto: "ei",  jp: "ei1", vowel: true }],
+      ["ey",   { ipa: "iː",  canto: "伊",  jp: "ji1", vowel: true }],
+      ["ie",   { ipa: "iː",  canto: "伊",  jp: "ji1", vowel: true }],
+      ["oa",   { ipa: "oʊ",  canto: "奧",  jp: "ou3", vowel: true }],
+      ["ue",   { ipa: "uː",  canto: "烏",  jp: "wu1", vowel: true }],
+      ["ui",   { ipa: "uː",  canto: "烏",  jp: "wu1", vowel: true }]
+    ];
+
+    const SINGLE_CONSONANTS = {
+      b: { ipa: "b",  canto: "b", jp: "b" }, c: { ipa: "k",  canto: "k", jp: "k" },
+      d: { ipa: "d",  canto: "d", jp: "d" }, f: { ipa: "f",  canto: "f", jp: "f" },
+      g: { ipa: "ɡ",  canto: "g", jp: "g" }, h: { ipa: "h",  canto: "h", jp: "h" },
+      j: { ipa: "dʒ", canto: "j", jp: "z" }, k: { ipa: "k",  canto: "k", jp: "k" },
+      l: { ipa: "l",  canto: "l", jp: "l" }, m: { ipa: "m",  canto: "m", jp: "m" },
+      n: { ipa: "n",  canto: "n", jp: "n" }, p: { ipa: "p",  canto: "p", jp: "p" },
+      q: { ipa: "k",  canto: "k", jp: "k" }, r: { ipa: "r",  canto: "r", jp: "r" },
+      s: { ipa: "s",  canto: "s", jp: "s" }, t: { ipa: "t",  canto: "t", jp: "t" },
+      v: { ipa: "v",  canto: "v", jp: "v" }, w: { ipa: "w",  canto: "w", jp: "w" },
+      x: { ipa: "ks", canto: "ks", jp: "ks" }, y: { ipa: "j", canto: "y", jp: "j" },
+      z: { ipa: "z",  canto: "z", jp: "z" }
+    };
+
+    const SINGLE_VOWELS = {
+      a: { ipa: "æ", canto: "阿", jp: "aa3", vowel: true },
+      e: { ipa: "ɛ", canto: "艾", jp: "e",   vowel: true },
+      i: { ipa: "ɪ", canto: "伊", jp: "ji1", vowel: true },
+      o: { ipa: "ɒ", canto: "奧", jp: "o1",  vowel: true },
+      u: { ipa: "ʌ", canto: "阿", jp: "a",   vowel: true }
+    };
+
+    const CV_CANTO = {
+      "ba": ["巴", "baa1"], "be": ["比", "bei2"], "bi": ["比", "bei2"], "bo": ["波", "bo1"], "bu": ["布", "bou3"],
+      "pa": ["帕", "paak3"], "pe": ["佩", "pui3"], "pi": ["皮", "pei4"], "po": ["波", "bo1"], "pu": ["普", "pou2"],
+      "ma": ["瑪", "maa5"], "me": ["美", "mei5"], "mi": ["米", "mai5"], "mo": ["莫", "mok6"], "mu": ["穆", "muk6"],
+      "fa": ["法", "faat3"], "fe": ["菲", "fei1"], "fi": ["菲", "fei1"], "fo": ["科", "fo1"], "fu": ["富", "fu3"],
+      "da": ["達", "daat6"], "de": ["迪", "dik6"], "di": ["迪", "dik6"], "do": ["多", "do1"], "du": ["杜", "dou6"],
+      "ta": ["塔", "taap3"], "te": ["提", "tai4"], "ti": ["蒂", "dai3"], "to": ["托", "tok3"], "tu": ["圖", "tou4"],
+      "na": ["娜", "naa4"], "ne": ["妮", "nei4"], "ni": ["尼", "nei4"], "no": ["諾", "nok6"], "nu": ["努", "nou5"],
+      "la": ["拉", "laai1"], "le": ["利", "lei6"], "li": ["利", "lei6"], "lo": ["羅", "lo4"], "lu": ["盧", "lou4"],
+      "ga": ["嘉", "gaa1"], "ge": ["基", "gei1"], "gi": ["基", "gei1"], "go": ["哥", "go1"], "gu": ["古", "gu2"],
+      "ka": ["卡", "kaa1"], "ke": ["凱", "hoi2"], "ki": ["基", "gei1"], "ko": ["柯", "o1"], "ku": ["庫", "fu3"],
+      "ha": ["哈", "haa1"], "he": ["希", "hei1"], "hi": ["希", "hei1"], "ho": ["荷", "ho4"], "hu": ["胡", "wu4"],
+      "sa": ["莎", "saa1"], "se": ["西", "sai1"], "si": ["斯", "si1"], "so": ["索", "sok3"], "su": ["蘇", "sou1"],
+      "wa": ["華", "waa4"], "we": ["威", "wai1"], "wi": ["威", "wai1"], "wo": ["沃", "juk1"], "wu": ["烏", "wu1"],
+      "ya": ["亞", "aa3"], "ye": ["耶", "je4"], "yi": ["伊", "ji1"], "yo": ["約", "joek3"], "yu": ["宇", "jyu5"],
+      "ja": ["賈", "gaa2"], "je": ["珍", "zan1"], "ji": ["吉", "gat1"], "jo": ["喬", "kiu4"], "ju": ["朱", "zyu1"],
+      "cha": ["查", "caa4"], "che": ["切", "cit3"], "chi": ["奇", "kei4"], "cho": ["喬", "kiu4"], "chu": ["朱", "zyu1"]
+    };
+
+    function fallbackPronounce(rawWord) {
+      const w = normalizeWord(rawWord);
+      if (!w) return { ipa: "", canto: "", jp: "", tip: "" };
+
+      const tokens = [];
+      let i = 0;
+      while (i < w.length) {
+        if (i === w.length - 1 && w[i] === "e" && tokens.some(t => t.vowel)) { i++; continue; }
+        if (i + 1 < w.length && w[i] === w[i + 1] && !SINGLE_VOWELS[w[i]]) { i++; continue; }
+
+        let matched = false;
+        for (const [pat, info] of DIGRAPH_MAP) {
+          if (w.startsWith(pat, i)) {
+            tokens.push({ ...info, raw: pat });
+            i += pat.length;
+            matched = true;
+            break;
+          }
+        }
+        if (matched) continue;
+
+        const ch = w[i];
+        const next = w[i + 1] || "";
+
+        if (ch === "y") {
+          if (i === 0 || SINGLE_VOWELS[next]) tokens.push({ ipa: "j", canto: "y", jp: "j", raw: "y" });
+          else tokens.push({ ipa: "i", canto: "伊", jp: "ji1", vowel: true, raw: "y" });
+        } else if (ch === "c" && "eiy".includes(next)) {
+          tokens.push({ ipa: "s", canto: "s", jp: "s", raw: "c" });
+        } else if (ch === "g" && "eiy".includes(next)) {
+          tokens.push({ ipa: "dʒ", canto: "j", jp: "z", raw: "g" });
+        } else if (SINGLE_VOWELS[ch]) {
+          tokens.push({ ...SINGLE_VOWELS[ch], raw: ch });
+        } else if (SINGLE_CONSONANTS[ch]) {
+          tokens.push({ ...SINGLE_CONSONANTS[ch], raw: ch });
+        }
+        i++;
+      }
+
+      const syllables = [];
+      let cur = [];
+      for (let idx = 0; idx < tokens.length; idx++) {
+        const t = tokens[idx];
+        cur.push(t);
+        if (t.vowel || t.syllable) {
+          const next = tokens[idx + 1];
+          const afterNext = tokens[idx + 2];
+          if (next && !next.vowel && afterNext && (afterNext.vowel || afterNext.syllable)) {
+            syllables.push(cur); cur = [];
+          } else if (next && (next.vowel || next.syllable)) {
+            syllables.push(cur); cur = [];
+          }
+        }
+      }
+      if (cur.length > 0) {
+        if (syllables.length > 0 && !cur.some(t => t.vowel || t.syllable)) syllables[syllables.length - 1].push(...cur);
+        else syllables.push(cur);
+      }
+
+      const ipaStr = syllables.map((syl, idx) => {
+        const s = syl.map(t => t.ipa).join("");
+        return (syllables.length > 1 && idx === 0) ? "ˈ" + s : s;
+      }).join(".");
+
+      const cantoParts = [];
+      const jpParts = [];
+
+      for (const syl of syllables) {
+        const vIdx = syl.findIndex(t => t.vowel || t.syllable);
+        if (vIdx === -1) {
+          cantoParts.push(syl.map(t => t.canto).join(""));
+          jpParts.push(syl.map(t => t.jp).join(""));
+          continue;
+        }
+        const onset = syl.slice(0, vIdx);
+        const nuc = syl[vIdx];
+        const coda = syl.slice(vIdx + 1);
+        const onsetRaw = onset.map(t => t.raw).join("");
+        const cvKey = onsetRaw + nuc.raw;
+        let headCanto = "";
+        let headJp = "";
+
+        if (onset.length === 1 && CV_CANTO[cvKey]) {
+          [headCanto, headJp] = CV_CANTO[cvKey];
+        } else {
+          headCanto = onset.map(t => t.canto).join("") + nuc.canto;
+          headJp = onset.map(t => t.jp).join("") + nuc.jp;
+        }
+
+        cantoParts.push(headCanto + coda.map(t => t.canto).join(""));
+        jpParts.push(headJp + coda.map(t => t.jp).join(""));
+      }
+
+      return {
+        ipa: "/" + ipaStr + "/",
+        canto: cantoParts.join("-"),
+        jp: jpParts.join(" · "),
+        tip: "Phonetic estimate · mix Cantonese characters with English consonant cues"
+      };
+    }
+
+    function analyzeName(fullName) {
+      const words = fullName.trim().split(/[\s-]+/).filter(Boolean);
+      if (words.length === 0) return null;
+
+      const results = words.map(w => {
+        const key = normalizeWord(w);
+        if (NAME_DICT[key]) return { ...NAME_DICT[key], exact: true };
+        return { ...fallbackPronounce(w), exact: false };
+      });
+
+      const ipa = results.map(r => r.ipa.replace(/^\/|\/$/g, "")).join(" ");
+      const canto = results.map(r => r.canto).join("  ");
+      const jp = results.map(r => r.jp).join("  |  ");
+      const exactEntry = results.find(r => r.exact);
+      const tip = exactEntry ? exactEntry.tip : results[0].tip;
+
+      return { ipa: "/" + ipa + "/", canto, jp, tip };
+    }
+
+    const nameInput = document.getElementById("nameInput");
+    const clearBtn = document.getElementById("clearBtn");
+    const speakBtn = document.getElementById("speakBtn");
+    const speakerIcon = document.getElementById("speakerIcon");
+    const speakingWave = document.getElementById("speakingWave");
+    const speakLabel = document.getElementById("speakLabel");
+    const speedBtn = document.getElementById("speedBtn");
+    const voiceSelect = document.getElementById("voiceSelect");
+    const themeBtn = document.getElementById("themeBtn");
+    const ipaOutput = document.getElementById("ipaOutput");
+    const cantoOutput = document.getElementById("cantoOutput");
+    const jyutpingOutput = document.getElementById("jyutpingOutput");
+    const tipText = document.getElementById("tipText");
+    const speechStatus = document.getElementById("speechStatus");
+    const sampleChips = document.getElementById("sampleChips");
+    const copyIpaBtn = document.getElementById("copyIpaBtn");
+    const copyCantoBtn = document.getElementById("copyCantoBtn");
+    const saveRosterBtn = document.getElementById("saveRosterBtn");
+    const rosterList = document.getElementById("rosterList");
+
+    let speechRate = 1.0;
+    let voices = [];
+    const ROSTER_KEY = "student_pronouncer_roster_v1";
+
+    function getRoster() {
+      try { return JSON.parse(localStorage.getItem(ROSTER_KEY) || "[]"); }
+      catch { return []; }
+    }
+
+    function saveRoster(list) {
+      localStorage.setItem(ROSTER_KEY, JSON.stringify(list));
+    }
+
+    function renderRoster() {
+      const list = getRoster();
+      rosterList.innerHTML = "";
+      if (list.length === 0) {
+        rosterList.innerHTML = '<span class="sub-note">No saved students yet. Type a name and click "+ Save Current Name".</span>';
+        return;
+      }
+      list.forEach((name, idx) => {
+        const item = document.createElement("div");
+        item.className = "roster-item";
+        const span = document.createElement("span");
+        span.textContent = name;
+        span.addEventListener("click", () => {
+          nameInput.value = name;
+          updateDisplay();
+          speakName();
+        });
+        const del = document.createElement("button");
+        del.type = "button";
+        del.className = "roster-del";
+        del.textContent = "✕";
+        del.title = "Remove";
+        del.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const updated = getRoster().filter((_, i) => i !== idx);
+          saveRoster(updated);
+          renderRoster();
+        });
+        item.appendChild(span);
+        item.appendChild(del);
+        rosterList.appendChild(item);
+      });
+    }
+
+    function renderSamples() {
+      sampleChips.innerHTML = "";
+      SAMPLES.forEach(name => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.textContent = name;
+        btn.className = "chip";
+        btn.addEventListener("click", () => {
+          nameInput.value = name;
+          updateDisplay();
+          speakName();
+        });
+        sampleChips.appendChild(btn);
+      });
+    }
+
+    function updateDisplay() {
+      const val = nameInput.value.trim();
+      clearBtn.classList.toggle("visible", Boolean(val));
+
+      if (!val) {
+        ipaOutput.textContent = "—";
+        cantoOutput.textContent = "—";
+        jyutpingOutput.textContent = "Type a student's name above";
+        tipText.textContent = "Supports any English or international name.";
+        return;
+      }
+
+      const res = analyzeName(val);
+      if (res) {
+        ipaOutput.textContent = res.ipa;
+        cantoOutput.textContent = res.canto;
+        jyutpingOutput.textContent = res.jp;
+        tipText.textContent = res.tip;
+      }
+    }
+
+    function loadVoices() {
+      if (!("speechSynthesis" in window)) {
+        voiceSelect.classList.add("hidden");
+        speechStatus.textContent = "Audio unavailable in this browser";
+        return;
+      }
+      voices = window.speechSynthesis.getVoices();
+      if (voices.length === 0) return;
+
+      const prev = voiceSelect.value;
+      voiceSelect.innerHTML = '<option value="">Default Voice</option>';
+      voices.forEach((v, idx) => {
+        const opt = document.createElement("option");
+        opt.value = idx;
+        opt.textContent = `${v.name.replace(/Microsoft |Google |Apple /g, "")} (${v.lang})`;
+        voiceSelect.appendChild(opt);
+      });
+      if (prev) voiceSelect.value = prev;
+    }
+
+    function setSpeakingUI(active) {
+      speakerIcon.classList.toggle("hidden", active);
+      speakingWave.classList.toggle("active", active);
+      speakLabel.textContent = active ? "Speaking" : "Speak";
+    }
+
+    function speakName() {
+      const text = nameInput.value.trim();
+      if (!text) return;
+
+      if (!("speechSynthesis" in window)) {
+        speechStatus.textContent = "Speech synthesis not supported";
+        return;
+      }
+
+      window.speechSynthesis.cancel();
+      const utter = new SpeechSynthesisUtterance(text);
+      utter.rate = speechRate;
+      if (voiceSelect.value !== "" && voices[voiceSelect.value]) {
+        utter.voice = voices[voiceSelect.value];
+      }
+
+      utter.onstart = () => {
+        setSpeakingUI(true);
+        speechStatus.textContent = "";
+      };
+      utter.onend = () => setSpeakingUI(false);
+      utter.onerror = () => {
+        setSpeakingUI(false);
+        speechStatus.textContent = "Could not play audio";
+      };
+
+      window.speechSynthesis.speak(utter);
+    }
+
+    function copyText(text, btn) {
+      if (!text || text === "—") return;
+      navigator.clipboard?.writeText(text).then(() => {
+        const orig = btn.textContent;
+        btn.textContent = "Copied!";
+        setTimeout(() => { btn.textContent = orig; }, 1200);
+      });
+    }
+
+    nameInput.addEventListener("input", updateDisplay);
+    clearBtn.addEventListener("click", () => {
+      nameInput.value = "";
+      updateDisplay();
+      nameInput.focus();
+    });
+    document.getElementById("nameForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      speakName();
+    });
+    speakBtn.addEventListener("click", speakName);
+    speedBtn.addEventListener("click", () => {
+      speechRate = speechRate === 1.0 ? 0.75 : 1.0;
+      speedBtn.textContent = speechRate === 1.0 ? "1.0x" : "0.75x";
+    });
+    themeBtn.addEventListener("click", () => {
+      const cur = document.documentElement.getAttribute("data-theme");
+      const next = cur === "dark" ? "light" : "dark";
+      document.documentElement.setAttribute("data-theme", next);
+    });
+    copyIpaBtn.addEventListener("click", () => copyText(ipaOutput.textContent, copyIpaBtn));
+    copyCantoBtn.addEventListener("click", () => copyText(cantoOutput.textContent, copyCantoBtn));
+    saveRosterBtn.addEventListener("click", () => {
+      const name = nameInput.value.trim();
+      if (!name) return;
+      const list = getRoster();
+      if (!list.includes(name)) {
+        list.push(name);
+        saveRoster(list);
+        renderRoster();
+      }
+    });
+
+    if ("speechSynthesis" in window) {
+      loadVoices();
+      window.speechSynthesis.onvoiceschanged = loadVoices;
+    }
+
+    renderSamples();
+    renderRoster();
+    updateDisplay();
+  </script>
+</body>
+</html>
